@@ -1,0 +1,72 @@
+﻿<Window x:Class="Zaclip.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Zaclip.Control" 
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        mc:Ignorable="d"
+        ShowInTaskbar="False"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        Title="MainWindow" Height="450" Width="350">
+
+
+    <Border Background="White" BorderBrush="Gray" BorderThickness="1" CornerRadius="10">
+            
+
+    <Grid Margin="10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <!-- タイトル -->
+                <RowDefinition/>
+                <!-- 中身 -->
+            </Grid.RowDefinitions>
+
+            <!-- タイトルバー -->
+            <Grid Grid.Row="0" Margin="0,0,0,10">
+                <TextBlock Text="Zaclip" FontSize="20"/>
+                <Button 
+                    Content="×"
+                    Command="{Binding CloseCommand}"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    HorizontalAlignment="Right"/>
+            </Grid>
+
+            <TextBlock
+                Grid.Row="1"
+                Text="クリップボードの履歴がありません。"
+                Visibility="{Binding HasItem, Converter={StaticResource InverseBoolToVisConverter}}" />
+
+            <ListView
+                Grid.Row="1"
+                x:Name="ClipList" 
+                ItemsSource="{Binding Items}"
+                Visibility="{Binding HasItem, Converter={StaticResource BooleanToVisibilityConverter}}"
+                HorizontalContentAlignment="Stretch"
+                ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                KeyDown="ClipList_KeyDown"
+                MouseLeftButtonUp="ClipList_MouseClick">
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="ListViewItem">
+                        <Setter Property="Margin" Value="0,0,0,5"/>
+                        <Setter Property="Padding" Value="0"/>
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="BorderThickness" Value="0"/>
+                        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                    </Style>
+                </ListView.ItemContainerStyle>
+
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <local:ClipboardItemCard />
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        
+    </Grid>
+        </Border>
+    
+</Window>
