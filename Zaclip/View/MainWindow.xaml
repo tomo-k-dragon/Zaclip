@@ -10,7 +10,8 @@
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"
-        Title="MainWindow" Height="450" Width="350">
+        Title="MainWindow" Height="450" Width="350"
+        MouseLeftButtonDown="Window_MouseLeftButtonDown">
 
 
     <Border Background="White" BorderBrush="Gray" BorderThickness="1" CornerRadius="10">

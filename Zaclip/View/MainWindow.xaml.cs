@@ -34,6 +34,7 @@ namespace Zaclip
         private string _latestText = "";
         private bool _isInternalCopy;
         private NotifyIcon _notifyIcon;
+        private bool _isShowDialog;
 
         // Win32 API: クリップボード監視登録
         [DllImport("user32.dll")]
@@ -89,7 +90,9 @@ namespace Zaclip
             };
             _vm.RequestConfirm += (msg) =>
             {
-                var result = MessageBox.Show(msg, "確認", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                _isShowDialog = true;
+                var result = MessageBox.Show(this, msg, "確認", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                _isShowDialog = false;
                 return result == MessageBoxResult.Yes;
             };
         }
@@ -159,6 +162,10 @@ namespace Zaclip
             return IntPtr.Zero;
         }
 
+        private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            DragMove();
+        }
 
         // アプリ終了時には、クリップボード監視を削除して保存対象でないClipboardItemを削除します。
         protected override void OnClosed(EventArgs e)
@@ -179,6 +186,7 @@ namespace Zaclip
         protected override void OnDeactivated(EventArgs e)
         {
             base.OnDeactivated(e);
+            if (_isShowDialog) return;
             this.Hide();
         }
 
