@@ -29,21 +29,33 @@ namespace Zaclip
     public partial class MainWindow : Window
     {
         private MainViewModel _vm;
-        // クリップボード更新時にWindowsから送られてくるメッセージID
-        private const int WM_CLIPBOARDUPDATE = 0x031D;
+        private const int WM_CLIPBOARDUPDATE = 0x031D;  // クリップボード更新時のメッセージID
+        private const int WM_HOTKEY = 0x0312;   // ホットキー受信時のメッセージID
+        private const uint MOD_CONTROL = 0x0002;
+        private const uint MOD_SHIFT = 0x0004;
         private string _latestText = "";
         private bool _isInternalCopy;
         private NotifyIcon _notifyIcon;
         private bool _isShowDialog;
 
-        // Win32 API: クリップボード監視登録
         [DllImport("user32.dll")]
         private static extern bool AddClipboardFormatListener(IntPtr hwnd);
 
-
-        // Win32 API: クリップボード監視解除
         [DllImport("user32.dll")]
         private static extern bool RemoveClipboardFormatListener(IntPtr hwnd);
+        private const int HOTKEY_ID = 9000;
+
+        [DllImport("user32.dll")]
+        private static extern bool RegisterHotKey(
+            IntPtr hWnd,
+            int id,
+            uint fsModifiers,
+            uint vk);
+
+        [DllImport("user32.dll")]
+        private static extern bool UnregisterHotKey(
+            IntPtr hWnd,
+            int id);
 
         public MainWindow()
         {
@@ -113,6 +125,19 @@ namespace Zaclip
 
             // Windowsメッセージをフックする（WndProcを通して受け取る）
             HwndSource.FromHwnd(hwnd).AddHook(WndProc);
+
+            // Ctrl + Shift + V を登録
+            bool success = RegisterHotKey(
+                hwnd,
+                HOTKEY_ID,
+                MOD_CONTROL | MOD_SHIFT,
+                (uint)KeyInterop.VirtualKeyFromKey(Key.V));
+
+            if (!success)
+            {
+                MessageBox.Show("ホットキーの登録に失敗しました。");
+            }
+            this.Hide();
         }
 
         /// <summary>
@@ -158,21 +183,33 @@ namespace Zaclip
                 {
                     Debug.WriteLine(ex.Message);
                 }
+            }else if(msg == WM_HOTKEY)
+            {
+                this.Show();
+                this.Activate();
+                this.Topmost = true;
+                this.Topmost = false;
+                this.Focus();
+                if (ClipList.ItemContainerGenerator.ContainerFromIndex(0) is ListViewItem firstItem)
+                {
+                    firstItem.Focus();
+                }
+                handled = true;
             }
             return IntPtr.Zero;
         }
-
         private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             DragMove();
         }
 
-        // アプリ終了時には、クリップボード監視を削除して保存対象でないClipboardItemを削除します。
         protected override void OnClosed(EventArgs e)
         {
+            // クリップボードの通知、ホットキーの登録を解除
             var hwnd = new WindowInteropHelper(this).Handle;
             RemoveClipboardFormatListener(hwnd);
-
+            UnregisterHotKey(hwnd, HOTKEY_ID);
+            // 保存対象でないデータは削除します。
             using (var db = new AppDbContext())
             {
                 var targets = db.ClipItems.Where(x => !x.Persisted).ToList();
@@ -182,11 +219,12 @@ namespace Zaclip
             base.OnClosed(e);
         }
 
-        // このアプリはフォーカスを失うとウィンドウを非表示にします。
         protected override void OnDeactivated(EventArgs e)
         {
+            // フォーカスを失った時は非表示にします。(アプリ内でメッセージ表示中はそのまま)
             base.OnDeactivated(e);
-            if (_isShowDialog) return;
+            if (_isShowDialog) return;  
+
             this.Hide();
         }
 
@@ -203,11 +241,7 @@ namespace Zaclip
             
             Clipboard.SetText(item.Text);
             ClipList.SelectedIndex = 0;
-            if(ClipList.ItemContainerGenerator.ContainerFromIndex(0) is ListViewItem firstItem)
-            {
-                firstItem.Focus();
-            }
-            this.WindowState = WindowState.Minimized;
+            this.Hide();
             await Task.Delay(100);
             SendKeys.SendWait("^v");
         }
