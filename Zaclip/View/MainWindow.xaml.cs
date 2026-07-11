@@ -20,6 +20,7 @@ using Clipboard = System.Windows.Clipboard;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 using MessageBox = System.Windows.MessageBox;
 using ListViewItem = System.Windows.Controls.ListViewItem;
+using Zaclip.View;
 
 namespace Zaclip
 {
@@ -37,6 +38,7 @@ namespace Zaclip
         private bool _isInternalCopy;
         private NotifyIcon _notifyIcon;
         private bool _isShowDialog;
+        private SettingWindow? _settingWindow;
 
         [DllImport("user32.dll")]
         private static extern bool AddClipboardFormatListener(IntPtr hwnd);
@@ -71,6 +73,23 @@ namespace Zaclip
             {
                 this.Show();
             };
+            var menuSetting = new ToolStripMenuItem()
+            {
+                Text = "設定",
+                Image = null,
+            };
+            menuSetting.Click += (s, e) =>
+            {
+                if (_settingWindow != null)
+                {
+                    _settingWindow.Activate();
+                    return;
+                }
+                _settingWindow = new SettingWindow();
+                _settingWindow.Closed += (s, e) => _settingWindow = null;
+                _settingWindow.Show();
+
+            };
             var menuExit = new ToolStripMenuItem()
             {
                 Text = "終了",
@@ -78,9 +97,11 @@ namespace Zaclip
             };
             menuExit.Click += (s, e) =>
             {
+                if(_settingWindow != null) _settingWindow.Close();
                 this.Close();
             };
             toolStripMenu.Items.Add(menuShow);
+            toolStripMenu.Items.Add(menuSetting);
             toolStripMenu.Items.Add(menuExit);
 
             _notifyIcon = new NotifyIcon();
