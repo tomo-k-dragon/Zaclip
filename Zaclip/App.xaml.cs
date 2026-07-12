@@ -8,6 +8,7 @@ using Zaclip.Service;
 using Zaclip.Service.Interface;
 using Microsoft.Extensions.Configuration;
 using Zaclip.Settings;
+using Zaclip.States;
 
 namespace Zaclip
 {
@@ -28,6 +29,7 @@ namespace Zaclip
             var services = new ServiceCollection();
             services.Configure<ApiSettings>(configuration.GetSection("ApiSettings"));
             ConfigureServices(services);
+            services.AddSingleton<TokenStore>();
             ServiceProvider = services.BuildServiceProvider();
 
             // データベース初期化
