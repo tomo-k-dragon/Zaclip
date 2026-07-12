@@ -30,6 +30,7 @@ namespace Zaclip
             services.Configure<ApiSettings>(configuration.GetSection("ApiSettings"));
             ConfigureServices(services);
             services.AddSingleton<TokenStore>();
+            services.AddSingleton<SessionContext>();
             ServiceProvider = services.BuildServiceProvider();
 
             // データベース初期化

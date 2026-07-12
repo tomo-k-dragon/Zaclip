@@ -15,12 +15,14 @@ namespace Zaclip.Service
     {
         private readonly HttpClient _httpClient;
         private readonly TokenStore _tokenStore;
+        private readonly SessionContext _session;
 
-        public AuthService(HttpClient httpClient, IOptions<ApiSettings> options, TokenStore tokenStore)
+        public AuthService(HttpClient httpClient, IOptions<ApiSettings> options, TokenStore tokenStore, SessionContext session)
         {
             _httpClient = httpClient;
             _httpClient.BaseAddress = new Uri(options.Value.BaseUrl);
             _tokenStore = tokenStore;
+            _session = session;
         }
 
         public async Task<LoginResult> LoginAsync(string email, string password)
@@ -47,6 +49,7 @@ namespace Zaclip.Service
                 throw new Exception();
             }
             _tokenStore.Set(token.Token, token.RefreshToken, DateTime.Now.AddSeconds(token.ExpiresIn));
+            _session.Login();
 
             return new LoginResult(token.Token, token.RefreshToken);
         }
