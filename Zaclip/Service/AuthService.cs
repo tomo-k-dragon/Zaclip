@@ -49,7 +49,7 @@ namespace Zaclip.Service
                 throw new Exception();
             }
             _tokenStore.Set(token.Token, token.RefreshToken, DateTime.Now.AddSeconds(token.ExpiresIn));
-            _session.Login();
+            _session.Login(email);
 
             return new LoginResult(token.Token, token.RefreshToken);
         }
