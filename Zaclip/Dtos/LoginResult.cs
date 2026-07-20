@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Zaclip.Dto
+namespace Zaclip.Dtos
 {
     public class LoginResult
     {

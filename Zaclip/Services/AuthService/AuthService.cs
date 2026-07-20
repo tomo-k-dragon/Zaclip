@@ -4,12 +4,11 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text;
-using Zaclip.Dto;
-using Zaclip.Service.Interface;
+using Zaclip.Dtos;
 using Zaclip.Settings;
 using Zaclip.States;
 
-namespace Zaclip.Service
+namespace Zaclip.Services.AuthService
 {
     public class AuthService: IAuthService
     {

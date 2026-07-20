@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Zaclip.Dto;
+using Zaclip.Dtos;
 
-namespace Zaclip.Service.Interface
+namespace Zaclip.Services.AuthService
 {
     public interface IAuthService
     {

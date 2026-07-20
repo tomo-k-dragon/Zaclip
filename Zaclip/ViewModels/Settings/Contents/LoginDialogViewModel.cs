@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Windows.Input;
 using Zaclip.Command;
-using Zaclip.Service.Interface;
+using Zaclip.Services.AuthService;
 
 namespace Zaclip.ViewModel.Settings.Contents
 {
