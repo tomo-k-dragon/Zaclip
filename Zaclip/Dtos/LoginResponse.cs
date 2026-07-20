@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Zaclip.Dtos
 {
-    internal class LoginResponse
+    public class LoginResponse
     {
         public string Token { get; init; } = string.Empty;
 

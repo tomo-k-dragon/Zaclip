@@ -34,7 +34,7 @@ namespace Zaclip.Services.AuthService
 
             var response =
                 await _httpClient.PostAsJsonAsync(
-                    "http://localhost:60262/api/auth/login",
+                    "/api/auth/login",
                     request);
 
             if (!response.IsSuccessStatusCode)
@@ -51,6 +51,23 @@ namespace Zaclip.Services.AuthService
             _session.Login(email);
 
             return new LoginResult(token.Token, token.RefreshToken);
+        }
+
+        public async Task<LoginResult> RefreshAsync(string refreshToken)
+        {
+            var response = await _httpClient.PostAsJsonAsync("auth/refresh", new { refreshToken = refreshToken });
+
+            if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                throw new UnauthorizedAccessException("Refresh token is invalid or expired.");
+            else if (!response.IsSuccessStatusCode)
+                    throw new Exception($"Refresh failed. StatusCode={response.StatusCode}");
+
+            var loginResponse = await response.Content.ReadFromJsonAsync<LoginResponse>();
+            if (loginResponse == null)
+                throw new Exception("Response body is empty.");
+
+            _tokenStore.Set(loginResponse.Token, loginResponse.RefreshToken, DateTime.Now.AddSeconds(loginResponse.ExpiresIn));
+            return new LoginResult(loginResponse.Token, loginResponse.RefreshToken);
         }
     }
 }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
+using Zaclip.Services.AuthService;
 using Zaclip.States;
 
 namespace Zaclip.Handlers
@@ -9,9 +10,11 @@ namespace Zaclip.Handlers
     public class AuthenticationHandler : DelegatingHandler
     {
         private readonly TokenStore _tokenStore;
-        public AuthenticationHandler(TokenStore tokenStore)
+        private readonly IAuthService _authService;
+        public AuthenticationHandler(TokenStore tokenStore, IAuthService authService)
         {
             _tokenStore = tokenStore;
+            _authService = authService;
         }
 
         protected override async Task<HttpResponseMessage> SendAsync(
@@ -20,7 +23,14 @@ namespace Zaclip.Handlers
             )
         {
             request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _tokenStore.AccessToken);
-            return await base.SendAsync(request, cancellationToken);
+            var result = await base.SendAsync(request, cancellationToken);
+            if(result.StatusCode == System.Net.HttpStatusCode.Unauthorized && _tokenStore.RefreshToken != null)
+            {
+                var refreshResult = await _authService.RefreshAsync(_tokenStore.RefreshToken);
+                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _tokenStore.AccessToken);
+                result = await base.SendAsync(request, cancellationToken);
+            }
+            return result;
         }
     }
 }
