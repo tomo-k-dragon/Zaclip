@@ -7,10 +7,12 @@ using Zaclip.Command.Common;
 using Zaclip.Command.Db;
 using Zaclip.Db;
 using Zaclip.Models;
+using Zaclip.Services.ServerClipboardService;
+using Zaclip.States;
 
 namespace Zaclip.ViewModel
 {
-    class MainViewModel : INotifyPropertyChanged
+    public class MainViewModel : INotifyPropertyChanged
     {
         public ObservableCollection<ClipboardItem> Items { get; }= new ObservableCollection<ClipboardItem>();
         public bool HasItem => Items.Count > 0;
@@ -20,14 +22,26 @@ namespace Zaclip.ViewModel
 
         public event Action? RequestClose;
         public event Func<string, bool>? RequestConfirm;
+        private ServerClipboardService _serverClipboardService;
+        private SessionContext _session;
 
 
-        public MainViewModel()
+        public MainViewModel(ServerClipboardService serverClipboardService, SessionContext session)
         {
+            _serverClipboardService = serverClipboardService;
+            _session = session;
             CloseCommand = new WindowHideCommand(this);
             PersistCommand = new PersistClipboardItemCommand();
             DeleteCommand = new RelayCommand<ClipboardItem>(execute: Delete);
 
+            Items.CollectionChanged += (s, e) =>
+            {
+                OnPropertyChanged(nameof(HasItem));
+            };
+        }
+
+        public async Task InitializeAsync()
+        {
             using (var db = new AppDbContext())
             {
                 var list = db.ClipItems.OrderByDescending(x => x.CreatedAt).Take(50).ToList();
@@ -36,11 +50,23 @@ namespace Zaclip.ViewModel
                     Items.Add(item);
                 }
             }
+            if (!_session.IsLoggedIn) return;
 
-            Items.CollectionChanged += (s, e) =>
+            var serverItems = await getServerClipboardItemsAsync();
+            foreach(var item in serverItems)
             {
-                OnPropertyChanged(nameof(HasItem));
-            };
+                Items.Add(item);
+            }
+        }
+
+        private async Task<ClipboardItem[]> getServerClipboardItemsAsync()
+        {
+            var result =  await _serverClipboardService.GetServerClipboardItemsAsync();
+            return result.Select(r => new ClipboardItem
+            {
+                Text = r.Content,
+                CreatedAt = r.UpdatedAt
+            }).ToArray();
         }
 
         public void WindowHide()

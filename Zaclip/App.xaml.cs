@@ -1,15 +1,16 @@
-﻿using System.Configuration;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using System.Configuration;
 using System.Data;
 using System.Windows;
-using Application = System.Windows.Application;
-using Microsoft.Extensions.DependencyInjection;
 using Zaclip.Db;
-using Zaclip.Service;
-using Zaclip.Service.Interface;
-using Microsoft.Extensions.Configuration;
+using Zaclip.Handlers;
+using Zaclip.Services.AuthService;
+using Zaclip.Services.ServerClipboardService;
 using Zaclip.Settings;
 using Zaclip.States;
-using Zaclip.Handlers;
+using Zaclip.ViewModel;
+using Application = System.Windows.Application;
 
 namespace Zaclip
 {
@@ -33,6 +34,10 @@ namespace Zaclip
             services.AddSingleton<TokenStore>();
             services.AddSingleton<SessionContext>();
             services.AddTransient<AuthenticationHandler>();
+
+            services.AddTransient<ServerClipboardService>();
+            services.AddTransient<MainViewModel>();
+            services.AddTransient<MainWindow>();
             ServiceProvider = services.BuildServiceProvider();
 
             // データベース初期化
@@ -40,6 +45,8 @@ namespace Zaclip
             {
                 db.Database.EnsureCreated();
             }
+            var window = ServiceProvider.GetRequiredService<MainWindow>();
+            window.Show();
         }
 
         private void ConfigureServices(IServiceCollection services)

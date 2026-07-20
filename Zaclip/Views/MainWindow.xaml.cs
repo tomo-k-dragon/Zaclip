@@ -59,9 +59,10 @@ namespace Zaclip
             IntPtr hWnd,
             int id);
 
-        public MainWindow()
+        public MainWindow(MainViewModel vm)
         {
             InitializeComponent();
+            _vm = vm;
 
             var toolStripMenu = new ContextMenuStrip();
             var menuShow = new ToolStripMenuItem()
@@ -115,7 +116,6 @@ namespace Zaclip
                 this.WindowState = WindowState.Normal;
             };
 
-            _vm = new MainViewModel();
             this.DataContext = _vm;
             _vm.RequestClose += () =>
             {
@@ -128,6 +128,12 @@ namespace Zaclip
                 _isShowDialog = false;
                 return result == MessageBoxResult.Yes;
             };
+            Loaded += MainWindow_Loaded;
+        }
+
+        private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            await _vm.InitializeAsync();
         }
 
         /// <summary>
