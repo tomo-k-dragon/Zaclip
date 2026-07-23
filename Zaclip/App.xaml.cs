@@ -6,6 +6,7 @@ using System.Windows;
 using Zaclip.Db;
 using Zaclip.Handlers;
 using Zaclip.Services.AuthService;
+using Zaclip.Services.Credential;
 using Zaclip.Services.ServerClipboardService;
 using Zaclip.Settings;
 using Zaclip.States;
@@ -21,7 +22,7 @@ namespace Zaclip
     {
         public static IServiceProvider ServiceProvider { get; private set; } = null!;
 
-        protected override void OnStartup(StartupEventArgs e)
+        protected override async void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
 
@@ -36,6 +37,8 @@ namespace Zaclip
             services.AddTransient<AuthenticationHandler>();
 
             services.AddTransient<ServerClipboardService>();
+            services.AddTransient<CredentialService>();
+            services.AddTransient<AuthService>();
             services.AddTransient<MainViewModel>();
             services.AddTransient<MainWindow>();
             ServiceProvider = services.BuildServiceProvider();
@@ -45,6 +48,10 @@ namespace Zaclip
             {
                 db.Database.EnsureCreated();
             }
+
+            var authService = ServiceProvider.GetRequiredService<AuthService>();
+            await authService.AutoLoginAsync();
+
             var window = ServiceProvider.GetRequiredService<MainWindow>();
             window.Show();
         }

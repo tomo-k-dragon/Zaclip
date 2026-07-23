@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text;
 using Zaclip.Dtos;
+using Zaclip.Services.Credential;
 using Zaclip.Settings;
 using Zaclip.States;
 
@@ -15,13 +16,15 @@ namespace Zaclip.Services.AuthService
         private readonly HttpClient _httpClient;
         private readonly TokenStore _tokenStore;
         private readonly SessionContext _session;
+        private readonly CredentialService _credentialService;
 
-        public AuthService(HttpClient httpClient, IOptions<ApiSettings> options, TokenStore tokenStore, SessionContext session)
+        public AuthService(HttpClient httpClient, IOptions<ApiSettings> options, TokenStore tokenStore, SessionContext session, CredentialService credentialService)
         {
             _httpClient = httpClient;
             _httpClient.BaseAddress = new Uri(options.Value.BaseUrl);
             _tokenStore = tokenStore;
             _session = session;
+            _credentialService = credentialService;
         }
 
         public async Task<LoginResult> LoginAsync(string email, string password)
@@ -49,13 +52,14 @@ namespace Zaclip.Services.AuthService
             }
             _tokenStore.Set(token.Token, token.RefreshToken, DateTime.Now.AddSeconds(token.ExpiresIn));
             _session.Login(email);
+            await _credentialService.SaveAsync(email, token.RefreshToken);
 
             return new LoginResult(token.Token, token.RefreshToken);
         }
 
         public async Task<LoginResult> RefreshAsync(string refreshToken)
         {
-            var response = await _httpClient.PostAsJsonAsync("auth/refresh", new { refreshToken = refreshToken });
+            var response = await _httpClient.PostAsJsonAsync("api/auth/refresh", new { refreshToken = refreshToken });
 
             if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
                 throw new UnauthorizedAccessException("Refresh token is invalid or expired.");
@@ -68,6 +72,20 @@ namespace Zaclip.Services.AuthService
 
             _tokenStore.Set(loginResponse.Token, loginResponse.RefreshToken, DateTime.Now.AddSeconds(loginResponse.ExpiresIn));
             return new LoginResult(loginResponse.Token, loginResponse.RefreshToken);
+        }
+
+        public async Task AutoLoginAsync()
+        {
+            try
+            {
+                var credential = await _credentialService.LoadAsync();
+                var loginResult = await RefreshAsync(credential.RefreshToken);
+                _session.Login(credential.Email);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Auto login failed: {ex.Message}");
+            }
         }
     }
 }
