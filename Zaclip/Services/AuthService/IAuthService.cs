@@ -8,7 +8,7 @@ namespace Zaclip.Services.AuthService
     public interface IAuthService
     {
         Task<LoginResult> LoginAsync(string email, string password);
-        Task<LoginResult> RefreshAsync(string refreshToken);
+        Task<LoginResult> RefreshAsync(string email, string refreshToken);
         Task AutoLoginAsync();
     }
 }

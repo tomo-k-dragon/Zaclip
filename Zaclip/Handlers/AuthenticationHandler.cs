@@ -10,10 +10,12 @@ namespace Zaclip.Handlers
     public class AuthenticationHandler : DelegatingHandler
     {
         private readonly TokenStore _tokenStore;
+        private readonly SessionContext _sessionContext;
         private readonly IAuthService _authService;
-        public AuthenticationHandler(TokenStore tokenStore, IAuthService authService)
+        public AuthenticationHandler(TokenStore tokenStore, SessionContext sessionContext, IAuthService authService)
         {
             _tokenStore = tokenStore;
+            _sessionContext = sessionContext;
             _authService = authService;
         }
 
@@ -24,9 +26,9 @@ namespace Zaclip.Handlers
         {
             request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _tokenStore.AccessToken);
             var result = await base.SendAsync(request, cancellationToken);
-            if(result.StatusCode == System.Net.HttpStatusCode.Unauthorized && _tokenStore.RefreshToken != null)
+            if(result.StatusCode == System.Net.HttpStatusCode.Unauthorized && _sessionContext.UserEmail != null && _tokenStore.RefreshToken != null)
             {
-                var refreshResult = await _authService.RefreshAsync(_tokenStore.RefreshToken);
+                var refreshResult = await _authService.RefreshAsync(_sessionContext.UserEmail, _tokenStore.RefreshToken);
                 request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _tokenStore.AccessToken);
                 result = await base.SendAsync(request, cancellationToken);
             }

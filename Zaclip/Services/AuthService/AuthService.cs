@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text;
@@ -29,35 +30,23 @@ namespace Zaclip.Services.AuthService
 
         public async Task<LoginResult> LoginAsync(string email, string password)
         {
-            var request = new
-            {
-                Email = email,
-                Password = password
-            };
-
+            var request = new { Email = email, Password = password };
             var response =
                 await _httpClient.PostAsJsonAsync(
                     "/api/auth/login",
                     request);
 
             if (!response.IsSuccessStatusCode)
-            {
                 throw new Exception();
-            }
 
             var token = await response.Content.ReadFromJsonAsync<LoginResponse>();
-            if(token == null)
-            {
-                throw new Exception();
-            }
-            _tokenStore.Set(token.Token, token.RefreshToken, DateTime.Now.AddSeconds(token.ExpiresIn));
-            _session.Login(email);
-            await _credentialService.SaveAsync(email, token.RefreshToken);
+            if(token == null) throw new Exception();
 
+            await CompleteLoginAsync(email, token.Token, token.RefreshToken, DateTime.Now.AddSeconds(token.ExpiresIn));
             return new LoginResult(token.Token, token.RefreshToken);
         }
 
-        public async Task<LoginResult> RefreshAsync(string refreshToken)
+        public async Task<LoginResult> RefreshAsync(string email, string refreshToken)
         {
             var response = await _httpClient.PostAsJsonAsync("api/auth/refresh", new { refreshToken = refreshToken });
 
@@ -70,8 +59,10 @@ namespace Zaclip.Services.AuthService
             if (loginResponse == null)
                 throw new Exception("Response body is empty.");
 
-            _tokenStore.Set(loginResponse.Token, loginResponse.RefreshToken, DateTime.Now.AddSeconds(loginResponse.ExpiresIn));
-            return new LoginResult(loginResponse.Token, loginResponse.RefreshToken);
+            var token = loginResponse.Token;
+            var newRefreshToken = loginResponse.RefreshToken;
+            await CompleteLoginAsync(email, token, newRefreshToken, DateTime.Now.AddSeconds(loginResponse.ExpiresIn));
+            return new LoginResult(token, newRefreshToken);
         }
 
         public async Task AutoLoginAsync()
@@ -79,13 +70,20 @@ namespace Zaclip.Services.AuthService
             try
             {
                 var credential = await _credentialService.LoadAsync();
-                var loginResult = await RefreshAsync(credential.RefreshToken);
-                _session.Login(credential.Email);
+                var loginResult = await RefreshAsync(credential.Email, credential.RefreshToken);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Auto login failed: {ex.Message}");
             }
+        }
+
+        // <summary>ログイン情報の保存を行う</summary>
+        private async Task CompleteLoginAsync(string email, string token, string refreshToken, DateTime expiresAt)
+        {
+            _tokenStore.Set(token, refreshToken, expiresAt);
+            _session.Login(email);
+            await _credentialService.SaveAsync(email, refreshToken);
         }
     }
 }
