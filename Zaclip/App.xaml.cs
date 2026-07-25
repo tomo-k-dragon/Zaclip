@@ -1,16 +1,21 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using System.Configuration;
 using System.Data;
 using System.Windows;
 using Zaclip.Db;
 using Zaclip.Handlers;
 using Zaclip.Services.AuthService;
+using Zaclip.Services.ClipboardItemsService;
 using Zaclip.Services.Credential;
 using Zaclip.Services.ServerClipboardService;
 using Zaclip.Settings;
 using Zaclip.States;
+using Zaclip.View;
+using Zaclip.View.Settings.Contents;
 using Zaclip.ViewModel;
+using Zaclip.ViewModel.Settings.Contents;
 using Application = System.Windows.Application;
 
 namespace Zaclip
@@ -25,22 +30,9 @@ namespace Zaclip
         protected override async void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
-
-            var configuration = new ConfigurationBuilder().SetBasePath(AppDomain.CurrentDomain.BaseDirectory).AddJsonFile("appsettings.json").Build();
-
-            // DI コンテナを構築
+            
             var services = new ServiceCollection();
-            services.Configure<ApiSettings>(configuration.GetSection("ApiSettings"));
-            ConfigureServices(services);
-            services.AddSingleton<TokenStore>();
-            services.AddSingleton<SessionContext>();
-            services.AddTransient<AuthenticationHandler>();
-
-            services.AddTransient<ServerClipboardService>();
-            services.AddTransient<CredentialService>();
-            services.AddTransient<AuthService>();
-            services.AddTransient<MainViewModel>();
-            services.AddTransient<MainWindow>();
+            ConfigureServices(services, BuildConfiguration());
             ServiceProvider = services.BuildServiceProvider();
 
             // データベース初期化
@@ -56,16 +48,55 @@ namespace Zaclip
             window.Show();
         }
 
-        private void ConfigureServices(IServiceCollection services)
+        private IConfiguration BuildConfiguration() =>
+            new ConfigurationBuilder()
+                .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
+                .AddJsonFile("appsettings.json")
+                .Build();
+
+        // <summary>アプリケーションの起動設定を行う</summary>
+        private void ConfigureServices(IServiceCollection services, IConfiguration config)
         {
-            // HttpClient を登録
-            services.AddHttpClient();
+            services.Configure<ApiSettings>(config.GetSection("ApiSettings"));
+            RegisterServices(services);
+            RegisterHttpClients(services);
+            RegisterViews(services);
+        }
 
-            // Service を登録
-            services.AddScoped<IAuthService, AuthService>();
+        /// <summary>アプリケーションで使用する状態保持クラスとサービスを登録する</summary>
+        private void RegisterServices(IServiceCollection services)
+        {
+            // 状態保持のシングルトンインスタンスを登録
+            services.AddSingleton<TokenStore>();
+            services.AddSingleton<SessionContext>();
+            // サービスの登録
+            services.AddTransient<AuthenticationHandler>();
+            services.AddTransient<IAuthService, AuthService>();
+            services.AddTransient<ICredentialService, CredentialService>();
+            services.AddTransient<IServerClipboardService, ServerClipboardService>();
+        }
 
-            // ViewModel を登録（必要に応じて追加）
-            services.AddTransient<ViewModel.Settings.Contents.LoginDialogViewModel>();
+        /// <summary>サービスへHttpClientの設定を行う</summary>
+        private void RegisterHttpClients(IServiceCollection services)
+        {
+            services.AddHttpClient<AuthService>(
+                (sp, client) => client.BaseAddress = GetBaseUri(sp));
+            services.AddHttpClient<ServerClipboardService>(
+                (sp, client) => client.BaseAddress = GetBaseUri(sp))
+                .AddHttpMessageHandler<AuthenticationHandler>();
+
+            Uri GetBaseUri(IServiceProvider sp) =>
+                new Uri(sp.GetRequiredService<IOptions<ApiSettings>>().Value.BaseUrl);
+        }
+
+        // <summary>アプリケーションで使用するビューとViewModelを登録する</summary>
+        private void RegisterViews(IServiceCollection services)
+        {
+            services.AddTransient<MainWindow>();
+            services.AddTransient<MainViewModel>();
+            services.AddTransient<SettingWindow>();
+            services.AddTransient<LoginDialog>();
+            services.AddTransient<LoginDialogViewModel>();
         }
     }
 

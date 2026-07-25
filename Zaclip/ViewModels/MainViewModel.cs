@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using MaterialDesignThemes.Wpf;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
@@ -40,6 +41,10 @@ namespace Zaclip.ViewModel
             };
         }
 
+        public Boolean IsLoggedIn => _session.IsLoggedIn;
+
+        public PackIconKind AccountIcon => IsLoggedIn ? PackIconKind.Account : PackIconKind.AccountOff;
+
         public async Task InitializeAsync()
         {
             using (var db = new AppDbContext())
@@ -61,7 +66,7 @@ namespace Zaclip.ViewModel
 
         private async Task<ClipboardItem[]> getServerClipboardItemsAsync()
         {
-            var result =  await _serverClipboardService.GetServerClipboardItemsAsync();
+            var result =  await _serverClipboardService.GetClipboardItemsAsync();
             return result.Select(r => new ClipboardItem
             {
                 Text = r.Content,

@@ -6,7 +6,7 @@ using Zaclip.Dtos;
 
 namespace Zaclip.Services.Credential
 {
-    public class CredentialService
+    public class CredentialService : ICredentialService
     {
         private const string Target = "Zaclip";
         public Task SaveAsync(string email, string refreshToken)

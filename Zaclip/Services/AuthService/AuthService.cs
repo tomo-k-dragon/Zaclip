@@ -16,9 +16,9 @@ namespace Zaclip.Services.AuthService
         private readonly HttpClient _httpClient;
         private readonly TokenStore _tokenStore;
         private readonly SessionContext _session;
-        private readonly CredentialService _credentialService;
+        private readonly ICredentialService _credentialService;
 
-        public AuthService(HttpClient httpClient, IOptions<ApiSettings> options, TokenStore tokenStore, SessionContext session, CredentialService credentialService)
+        public AuthService(HttpClient httpClient, IOptions<ApiSettings> options, TokenStore tokenStore, SessionContext session, ICredentialService credentialService)
         {
             _httpClient = httpClient;
             _httpClient.BaseAddress = new Uri(options.Value.BaseUrl);

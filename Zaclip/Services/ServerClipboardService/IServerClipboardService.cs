@@ -7,6 +7,6 @@ namespace Zaclip.Services.ClipboardItemsService
 {
     internal interface IServerClipboardService
     {
-        public Task<ServerClipboardItemResponse> GetClipboardItemsAsync();
+        public Task<ServerClipboardItemResponse[]> GetClipboardItemsAsync();
     }
 }

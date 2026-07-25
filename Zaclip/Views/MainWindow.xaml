@@ -27,8 +27,21 @@
 
             <!-- タイトルバー -->
             <Grid Grid.Row="0" Margin="0,0,0,10">
-                <TextBlock Text="Zaclip" FontSize="20"/>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" Text="Zaclip" FontSize="20"/>
+                <materialDesign:PackIcon
+                    Grid.Column="2"
+                    Kind="{Binding AccountIcon}"
+                    Width="24"
+                    Height="24"/>
                 <Button 
+                    Grid.Column="3"
                     Content="×"
                     Command="{Binding CloseCommand}"
                     Background="Transparent"
