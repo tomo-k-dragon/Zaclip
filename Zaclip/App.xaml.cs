@@ -16,6 +16,7 @@ using Zaclip.View;
 using Zaclip.View.Settings.Contents;
 using Zaclip.ViewModel;
 using Zaclip.ViewModel.Settings.Contents;
+using Zaclip.ViewModels.Controls;
 using Application = System.Windows.Application;
 
 namespace Zaclip
@@ -94,6 +95,7 @@ namespace Zaclip
         {
             services.AddTransient<MainWindow>();
             services.AddTransient<MainViewModel>();
+            services.AddTransient<AccountIconViewModel>();
             services.AddTransient<SettingWindow>();
             services.AddTransient<LoginDialog>();
             services.AddTransient<LoginDialogViewModel>();

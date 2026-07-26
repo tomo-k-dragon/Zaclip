@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Zaclip.Control" 
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:controls="clr-namespace:Zaclip.Controls"
         mc:Ignorable="d"
         ShowInTaskbar="False"
         WindowStyle="None"
@@ -35,11 +36,10 @@
                 </Grid.ColumnDefinitions>
 
                 <TextBlock Grid.Column="0" Text="Zaclip" FontSize="20"/>
-                <materialDesign:PackIcon
+                <controls:AccountIcon
                     Grid.Column="2"
-                    Kind="{Binding AccountIcon}"
-                    Width="24"
-                    Height="24"/>
+                    DataContext="{Binding AccountIconViewModel}" 
+                    />
                 <Button 
                     Grid.Column="3"
                     Content="×"

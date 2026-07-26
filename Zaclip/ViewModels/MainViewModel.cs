@@ -10,6 +10,7 @@ using Zaclip.Db;
 using Zaclip.Models;
 using Zaclip.Services.ServerClipboardService;
 using Zaclip.States;
+using Zaclip.ViewModels.Controls;
 
 namespace Zaclip.ViewModel
 {
@@ -20,6 +21,7 @@ namespace Zaclip.ViewModel
         public ICommand CloseCommand { get; }
         public ICommand PersistCommand { get; }
         public ICommand DeleteCommand { get; }
+        public AccountIconViewModel AccountIconViewModel { get; }
 
         public event Action? RequestClose;
         public event Func<string, bool>? RequestConfirm;
@@ -27,10 +29,11 @@ namespace Zaclip.ViewModel
         private SessionContext _session;
 
 
-        public MainViewModel(ServerClipboardService serverClipboardService, SessionContext session)
+        public MainViewModel(ServerClipboardService serverClipboardService, SessionContext session, AccountIconViewModel accountIconViewModel)
         {
             _serverClipboardService = serverClipboardService;
             _session = session;
+            AccountIconViewModel = accountIconViewModel;
             CloseCommand = new WindowHideCommand(this);
             PersistCommand = new PersistClipboardItemCommand();
             DeleteCommand = new RelayCommand<ClipboardItem>(execute: Delete);
@@ -43,7 +46,6 @@ namespace Zaclip.ViewModel
 
         public Boolean IsLoggedIn => _session.IsLoggedIn;
 
-        public PackIconKind AccountIcon => IsLoggedIn ? PackIconKind.Account : PackIconKind.AccountOff;
 
         public async Task InitializeAsync()
         {

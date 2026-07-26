@@ -1,0 +1,48 @@
+﻿<UserControl x:Class="Zaclip.Controls.AccountIcon"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             mc:Ignorable="d"
+             d:DesignHeight="40"
+             d:DesignWidth="40">
+
+    <Grid>
+        <Button
+            Width="32"
+            Height="32"
+            Padding="0"
+            Background="Transparent"
+            BorderThickness="0"
+            Loaded="Icon_Button_Loaded"
+            Click="Icon_Click"
+            ToolTip="{Binding ToolTip}">
+
+            <materialDesign:PackIcon
+                Width="24"
+                Height="24"
+                Kind="{Binding Icon}" />
+
+
+            <Button.ContextMenu>
+                <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}" >
+                    <!-- ログイン中 -->
+                    <MenuItem
+                        Header="アカウント設定"
+                        Command="{Binding OpenAccountSettingCommand}"
+                        Visibility="{Binding LoggedInVisibility}" />
+                    <MenuItem
+                        Header="ログアウト"
+                        Command="{Binding LogoutCommand}"
+                        Visibility="{Binding LoggedInVisibility}" />
+                    <!-- 未ログイン -->
+                    <MenuItem
+                        Header="ログイン"
+                        Command="{Binding LoginCommand}"
+                        Visibility="{Binding LoggedOutVisibility}" />
+                </ContextMenu>
+            </Button.ContextMenu>
+        </Button>
+    </Grid>
+</UserControl>
