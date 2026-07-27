@@ -9,7 +9,7 @@ using Zaclip.Services.AuthService;
 
 namespace Zaclip.ViewModel.Settings.Contents
 {
-    internal class LoginDialogViewModel : INotifyPropertyChanged
+    public class LoginDialogViewModel : INotifyPropertyChanged
     {
         private readonly IAuthService _authService;
         private string _email = string.Empty;
@@ -55,6 +55,20 @@ namespace Zaclip.ViewModel.Settings.Contents
             }
         }
 
+        private string? _errorMessage;
+        public string? ErrorMessage
+        {
+            get => _errorMessage;
+            set
+            {
+                if (_errorMessage != value)
+                {
+                    _errorMessage = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
         public ICommand LoginCommand { get; }
 
         public event Action? RequestClose;
@@ -68,8 +82,10 @@ namespace Zaclip.ViewModel.Settings.Contents
 
         private async void LoginAsync(object? parameter)
         {
+            ErrorMessage = null;
             if (string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(Password))
             {
+                ErrorMessage = "メールアドレスとパスワードを入力してください。";
                 return;
             }
 
@@ -77,14 +93,16 @@ namespace Zaclip.ViewModel.Settings.Contents
             {
                 IsLoading = true;
                 var result = await _authService.LoginAsync(Email, Password);
-                // ここでログイン成功後の処理を行う
-                // 例: トークン保存、ウィンドウクローズ要求など
+                if (!result.IsSuccess)
+                {
+                    ErrorMessage = result.ErrorMessage;
+                    return;
+                }
                 RequestClose?.Invoke();
             }
             catch (Exception ex)
             {
-                // エラーハンドリング
-                // 実装は別途
+                ErrorMessage = "ログインに失敗しました。";
             }
             finally
             {

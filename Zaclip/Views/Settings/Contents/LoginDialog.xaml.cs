@@ -18,12 +18,10 @@ namespace Zaclip.View.Settings.Contents
     /// </summary>
     public partial class LoginDialog : Window
     {
-        public LoginDialog()
+        public LoginDialog(LoginDialogViewModel viewModel)
         {
             InitializeComponent();
 
-            // DI コンテナから ViewModel を取得
-            var viewModel = App.ServiceProvider.GetService(typeof(LoginDialogViewModel)) as LoginDialogViewModel;
             DataContext = viewModel;
 
             // PasswordBox の入力を ViewModel と同期
@@ -35,6 +33,8 @@ namespace Zaclip.View.Settings.Contents
                     viewModel.Password = txtPassword.Password;
                 }
             };
+
+            viewModel.RequestClose += () => this.Close();
         }
 
     }

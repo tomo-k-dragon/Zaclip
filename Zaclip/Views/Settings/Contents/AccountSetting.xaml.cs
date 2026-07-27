@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Windows;
@@ -25,7 +26,7 @@ namespace Zaclip.View.Settings.Contents
 
     public void LoginButton_Click(object sender, RoutedEventArgs e)
         {
-            var loginDialog = new LoginDialog();
+            var loginDialog = App.ServiceProvider.GetRequiredService<LoginDialog>();
             loginDialog.Owner = Window.GetWindow(this);
             loginDialog.ShowDialog();
         }

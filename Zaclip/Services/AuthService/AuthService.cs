@@ -30,52 +30,56 @@ namespace Zaclip.Services.AuthService
 
         public async Task<LoginResult> LoginAsync(string email, string password)
         {
-            var request = new { Email = email, Password = password };
-            var response =
-                await _httpClient.PostAsJsonAsync(
-                    "/api/auth/login",
-                    request);
+            try {
+                var request = new { Email = email, Password = password };
+                var response =
+                    await _httpClient.PostAsJsonAsync(
+                        "/api/auth/login",
+                        request);
 
-            if (!response.IsSuccessStatusCode)
-                throw new Exception();
+                if (!response.IsSuccessStatusCode)
+                    return new LoginResult(false, errorMessage: "ログインに失敗しました。");
 
-            var token = await response.Content.ReadFromJsonAsync<LoginResponse>();
-            if(token == null) throw new Exception();
+                var token = await response.Content.ReadFromJsonAsync<LoginResponse>();
+                if (token == null) return new LoginResult(false, errorMessage: "ログインに失敗しました。");
 
-            await CompleteLoginAsync(email, token.Token, token.RefreshToken, DateTime.Now.AddSeconds(token.ExpiresIn));
-            return new LoginResult(token.Token, token.RefreshToken);
+                await CompleteLoginAsync(email, token.Token, token.RefreshToken, DateTime.Now.AddSeconds(token.ExpiresIn));
+                return new LoginResult(true, token.Token, token.RefreshToken);
+            } catch (Exception ex)
+            {
+                return new LoginResult(false, errorMessage: "ログインに失敗しました。");
+            }
         }
 
         public async Task<LoginResult> RefreshAsync(string email, string refreshToken)
         {
-            var response = await _httpClient.PostAsJsonAsync("api/auth/refresh", new { refreshToken = refreshToken });
+            try
+            {
+                var response = await _httpClient.PostAsJsonAsync("api/auth/refresh", new { refreshToken = refreshToken });
+                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                    return new LoginResult(false, errorMessage: "ログインに失敗しました。");
+                else if (!response.IsSuccessStatusCode)
+                    return new LoginResult(false, errorMessage: "ログインに失敗しました。");
 
-            if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-                throw new UnauthorizedAccessException("Refresh token is invalid or expired.");
-            else if (!response.IsSuccessStatusCode)
-                    throw new Exception($"Refresh failed. StatusCode={response.StatusCode}");
+                var loginResponse = await response.Content.ReadFromJsonAsync<LoginResponse>();
+                if (loginResponse == null)
+                    return new LoginResult(false, errorMessage: "ログインに失敗しました。");
 
-            var loginResponse = await response.Content.ReadFromJsonAsync<LoginResponse>();
-            if (loginResponse == null)
-                throw new Exception("Response body is empty.");
-
-            var token = loginResponse.Token;
-            var newRefreshToken = loginResponse.RefreshToken;
-            await CompleteLoginAsync(email, token, newRefreshToken, DateTime.Now.AddSeconds(loginResponse.ExpiresIn));
-            return new LoginResult(token, newRefreshToken);
+                var token = loginResponse.Token;
+                var newRefreshToken = loginResponse.RefreshToken;
+                await CompleteLoginAsync(email, token, newRefreshToken, DateTime.Now.AddSeconds(loginResponse.ExpiresIn));
+                return new LoginResult(true, token, newRefreshToken);
+            }
+            catch (Exception ex)
+            {
+                return new LoginResult(false, errorMessage: "ログインに失敗しました。");
+            }
         }
 
         public async Task AutoLoginAsync()
         {
-            try
-            {
-                var credential = await _credentialService.LoadAsync();
-                var loginResult = await RefreshAsync(credential.Email, credential.RefreshToken);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Auto login failed: {ex.Message}");
-            }
+            var credential = await _credentialService.LoadAsync();
+            var loginResult = await RefreshAsync(credential.Email, credential.RefreshToken);
         }
 
         // <summary>ログイン情報の保存を行う</summary>

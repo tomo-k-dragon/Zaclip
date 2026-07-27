@@ -26,9 +26,15 @@ namespace Zaclip.Handlers
         {
             request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _tokenStore.AccessToken);
             var result = await base.SendAsync(request, cancellationToken);
-            if(result.StatusCode == System.Net.HttpStatusCode.Unauthorized && _sessionContext.UserEmail != null && _tokenStore.RefreshToken != null)
+            if (result.StatusCode == System.Net.HttpStatusCode.Unauthorized && _sessionContext.UserEmail != null && _tokenStore.RefreshToken != null)
             {
                 var refreshResult = await _authService.RefreshAsync(_sessionContext.UserEmail, _tokenStore.RefreshToken);
+                if (!refreshResult.IsSuccess)
+                {
+                    _tokenStore.Clear();
+                    _sessionContext.Logout();
+                    return result;
+                }
                 request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _tokenStore.AccessToken);
                 result = await base.SendAsync(request, cancellationToken);
             }

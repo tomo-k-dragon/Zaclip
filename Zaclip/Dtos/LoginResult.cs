@@ -6,12 +6,16 @@ namespace Zaclip.Dtos
 {
     public class LoginResult
     {
-        public LoginResult(string accessToken, string refreshToken)
+        public LoginResult(bool isSuccess, string? accessToken = null, string? refreshToken = null, string? errorMessage = null)
         {
+            IsSuccess = isSuccess;
             AccessToken = accessToken;
             RefreshToken = refreshToken;
+            ErrorMessage = errorMessage;
         }
-        public string AccessToken { get; set; } = "";
-        public string RefreshToken { get; set; } = "";
+        public bool IsSuccess { get; set; } = false;
+        public string? AccessToken { get; set; }
+        public string? RefreshToken { get; set; }
+        public string? ErrorMessage { get; set; }
     }
 }
