@@ -197,13 +197,7 @@ namespace Zaclip
                     // 空チェック（画像コピーなどは空になることがある）
                     if (!string.IsNullOrEmpty(text))
                     {
-                        using (var db = new AppDbContext())
-                        {
-                            ClipboardItem clipItem = new ClipboardItem { Text = text, CreatedAt = DateTime.Now };
-                            db.ClipItems.Add(clipItem);
-                            db.SaveChanges();
-                            _vm.Items.Insert(0, clipItem);
-                        }
+                        _ = _vm.AddTemporaryClipboardItem(text);
                     }
                 }
                 catch (Exception ex)

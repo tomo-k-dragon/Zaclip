@@ -9,6 +9,7 @@ using Zaclip.Handlers;
 using Zaclip.Services.AuthService;
 using Zaclip.Services.ClipboardItemsService;
 using Zaclip.Services.Credential;
+using Zaclip.Services.LocalClipboardService;
 using Zaclip.Services.ServerClipboardService;
 using Zaclip.Settings;
 using Zaclip.States;
@@ -16,6 +17,7 @@ using Zaclip.View;
 using Zaclip.View.Settings.Contents;
 using Zaclip.ViewModel;
 using Zaclip.ViewModel.Settings.Contents;
+using Zaclip.ViewModels;
 using Zaclip.ViewModels.Controls;
 using Application = System.Windows.Application;
 
@@ -71,10 +73,12 @@ namespace Zaclip
             services.AddSingleton<TokenStore>();
             services.AddSingleton<SessionContext>();
             // サービスの登録
+            services.AddTransient<AppDbContext>();
             services.AddTransient<AuthenticationHandler>();
             services.AddTransient<IAuthService, AuthService>();
             services.AddTransient<ICredentialService, CredentialService>();
             services.AddTransient<IServerClipboardService, ServerClipboardService>();
+            services.AddTransient<ILocalClipboardService, LocalClipboardService>();
         }
 
         /// <summary>サービスへHttpClientの設定を行う</summary>
@@ -82,7 +86,7 @@ namespace Zaclip
         {
             services.AddHttpClient<AuthService>(
                 (sp, client) => client.BaseAddress = GetBaseUri(sp));
-            services.AddHttpClient<ServerClipboardService>(
+            services.AddHttpClient<IServerClipboardService, ServerClipboardService>(
                 (sp, client) => client.BaseAddress = GetBaseUri(sp))
                 .AddHttpMessageHandler<AuthenticationHandler>();
 
@@ -99,6 +103,8 @@ namespace Zaclip
             services.AddTransient<SettingWindow>();
             services.AddTransient<LoginDialog>();
             services.AddTransient<LoginDialogViewModel>();
+            services.AddTransient<TemporaryClipboardListViewModel>();
+            services.AddTransient<SavedClipboardListViewModel>();
         }
     }
 

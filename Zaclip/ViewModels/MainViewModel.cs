@@ -8,35 +8,60 @@ using Zaclip.Command.Common;
 using Zaclip.Command.Db;
 using Zaclip.Db;
 using Zaclip.Models;
+using Zaclip.Services.ClipboardItemsService;
 using Zaclip.Services.ServerClipboardService;
 using Zaclip.States;
+using Zaclip.ViewModels;
 using Zaclip.ViewModels.Controls;
 
 namespace Zaclip.ViewModel
 {
-    public class MainViewModel : INotifyPropertyChanged
+    public class MainViewModel : ViewModelBase
     {
         public ObservableCollection<ClipboardItem> Items { get; }= new ObservableCollection<ClipboardItem>();
         public bool HasItem => Items.Count > 0;
         public ICommand CloseCommand { get; }
+        public ICommand ChangeTabCommand { get; }
         public ICommand PersistCommand { get; }
         public ICommand DeleteCommand { get; }
         public AccountIconViewModel AccountIconViewModel { get; }
 
         public event Action? RequestClose;
         public event Func<string, bool>? RequestConfirm;
-        private ServerClipboardService _serverClipboardService;
+        private IServerClipboardService _serverClipboardService;
         private SessionContext _session;
+        private TemporaryClipboardListViewModel _temporaryViewModel;
+        private SavedClipboardListViewModel _savedViewModel;
+        private IClipboardListAction _currentListViewModel;
+        public IClipboardListAction CurrentListViewModel
+        {
+            get => _currentListViewModel;
+            set
+            {
+                _currentListViewModel = value;
+                OnPropertyChanged();
+            }
+        }
 
 
-        public MainViewModel(ServerClipboardService serverClipboardService, SessionContext session, AccountIconViewModel accountIconViewModel)
+        public MainViewModel(
+            TemporaryClipboardListViewModel temporaryViewModel,
+            SavedClipboardListViewModel savedViewModel,
+            IServerClipboardService serverClipboardService, SessionContext session, AccountIconViewModel accountIconViewModel)
         {
             _serverClipboardService = serverClipboardService;
             _session = session;
+            _temporaryViewModel = temporaryViewModel;
+            _savedViewModel = savedViewModel;
             AccountIconViewModel = accountIconViewModel;
             CloseCommand = new WindowHideCommand(this);
+            ChangeTabCommand = new RelayCommand<string>(execute: (target) =>
+            {
+                CurrentListViewModel = target == "Temporary" ? _temporaryViewModel : _savedViewModel;
+            });
             PersistCommand = new PersistClipboardItemCommand();
             DeleteCommand = new RelayCommand<ClipboardItem>(execute: Delete);
+            _currentListViewModel = _temporaryViewModel;
 
             Items.CollectionChanged += (s, e) =>
             {
@@ -49,31 +74,8 @@ namespace Zaclip.ViewModel
 
         public async Task InitializeAsync()
         {
-            using (var db = new AppDbContext())
-            {
-                var list = db.ClipItems.OrderByDescending(x => x.CreatedAt).Take(50).ToList();
-                foreach (var item in list)
-                {
-                    Items.Add(item);
-                }
-            }
-            if (!_session.IsLoggedIn) return;
-
-            var serverItems = await getServerClipboardItemsAsync();
-            foreach(var item in serverItems)
-            {
-                Items.Add(item);
-            }
-        }
-
-        private async Task<ClipboardItem[]> getServerClipboardItemsAsync()
-        {
-            var result =  await _serverClipboardService.GetClipboardItemsAsync();
-            return result.Select(r => new ClipboardItem
-            {
-                Text = r.Content,
-                CreatedAt = r.UpdatedAt
-            }).ToArray();
+            await _temporaryViewModel.InitializeAsync();
+            await _savedViewModel.InitializeAsync();
         }
 
         public void WindowHide()
@@ -82,12 +84,9 @@ namespace Zaclip.ViewModel
         }
 
 
-        // --- INotifyPropertyChanged ---
-        public event PropertyChangedEventHandler? PropertyChanged;
-
-        protected void OnPropertyChanged([CallerMemberName] string? name = null)
+        public async  Task AddTemporaryClipboardItem(string text)
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+            await _temporaryViewModel.AddItem(text);
         }
 
         private void Delete(ClipboardItem? item)

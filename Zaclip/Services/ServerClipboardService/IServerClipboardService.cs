@@ -5,7 +5,7 @@ using Zaclip.Dtos;
 
 namespace Zaclip.Services.ClipboardItemsService
 {
-    internal interface IServerClipboardService
+    public interface IServerClipboardService
     {
         public Task<ServerClipboardItemResponse[]> GetClipboardItemsAsync();
     }
