@@ -9,6 +9,7 @@ namespace Zaclip.Services.LocalClipboardService
     public interface ILocalClipboardService
     {
         public Task<List<ClipboardItem>> GetAsync(ClipboardQuery query);
+        public Task<ClipboardItem?> GetItemAsync(int itemId);
         public Task<ClipboardItem> SaveTemporaryAsync(string itemText);
         public Task PersistAsync(int itemId);
         public Task DeleteAsync(int itemId);

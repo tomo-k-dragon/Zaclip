@@ -44,7 +44,7 @@
                     Height="30"
                     Background="Transparent"
                     BorderThickness="0"
-                    Command="{Binding DataContext.SaveCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                    Command="{Binding DataContext.CurrentListViewModel.SaveCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                     CommandParameter="{Binding}"
                     Style="{StaticResource MaterialDesignIconButton}">
                     <materialDesign:PackIcon Foreground="Black">

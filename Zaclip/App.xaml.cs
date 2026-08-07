@@ -7,6 +7,7 @@ using System.Windows;
 using Zaclip.Db;
 using Zaclip.Handlers;
 using Zaclip.Services.AuthService;
+using Zaclip.Services.ClipboardEventService;
 using Zaclip.Services.ClipboardItemsService;
 using Zaclip.Services.Credential;
 using Zaclip.Services.LocalClipboardService;
@@ -72,6 +73,7 @@ namespace Zaclip
             // 状態保持のシングルトンインスタンスを登録
             services.AddSingleton<TokenStore>();
             services.AddSingleton<SessionContext>();
+            services.AddSingleton<IClipboardEventService, ClipboardEventService>();
             // サービスの登録
             services.AddTransient<AppDbContext>();
             services.AddTransient<AuthenticationHandler>();

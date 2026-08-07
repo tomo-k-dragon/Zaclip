@@ -28,6 +28,9 @@ public class LocalClipboardService : ILocalClipboardService
             .ToListAsync();
     }
 
+    public Task<ClipboardItem?> GetItemAsync(int itemId) =>
+        _db.ClipItems.FirstOrDefaultAsync(x => x.Id == itemId);
+
     public async Task<ClipboardItem> SaveTemporaryAsync(string itemText)
     {
         var item = new ClipboardItem

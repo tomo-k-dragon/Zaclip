@@ -7,6 +7,7 @@ using Zaclip.Command;
 using Zaclip.Db;
 using Zaclip.Dtos;
 using Zaclip.Models;
+using Zaclip.Services.ClipboardEventService;
 using Zaclip.Services.LocalClipboardService;
 
 namespace Zaclip.ViewModels
@@ -18,9 +19,11 @@ namespace Zaclip.ViewModels
         public ICommand SaveCommand { get; }
         public ICommand DeleteCommand { get; }
         private ILocalClipboardService _localClipboardService;
-        public TemporaryClipboardListViewModel(ILocalClipboardService localClipboardService)
+        private IClipboardEventService _clipboardEventService;
+        public TemporaryClipboardListViewModel(ILocalClipboardService localClipboardService, IClipboardEventService clipboardEventService)
         {
             _localClipboardService = localClipboardService;
+            _clipboardEventService = clipboardEventService;
             Items.CollectionChanged += (s, e) =>
             {
                 OnPropertyChanged(nameof(HasItem));
@@ -52,6 +55,7 @@ namespace Zaclip.ViewModels
             if (item == null) return;
 
             await _localClipboardService.PersistAsync(item.Id);
+            _clipboardEventService.RaiseItemSaved(item.Id);
         }
 
         private async Task DeleteAsync(ClipboardItem? item)
