@@ -56,6 +56,7 @@ namespace Zaclip.ViewModels
 
             await _localClipboardService.PersistAsync(item.Id);
             _clipboardEventService.RaiseItemSaved(item.Id);
+            Items.Remove(item);
         }
 
         private async Task DeleteAsync(ClipboardItem? item)

@@ -42,6 +42,19 @@ namespace Zaclip.ViewModel
                 OnPropertyChanged();
             }
         }
+        private SaveDestination _selectedSaveDestination;
+        public SaveDestination SelectedSaveDestination
+        {
+            get => _selectedSaveDestination;
+            set
+            {
+                if (_selectedSaveDestination != value)
+                {
+                    _selectedSaveDestination = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
 
 
         public MainViewModel(
@@ -69,6 +82,7 @@ namespace Zaclip.ViewModel
             {
                 OnPropertyChanged(nameof(HasItem));
             };
+            SelectedSaveDestination = IsLoggedIn ? SaveDestination.LocalAndCloud : SaveDestination.Local;
         }
 
         public Boolean IsLoggedIn => _session.IsLoggedIn;

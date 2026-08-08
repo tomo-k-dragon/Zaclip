@@ -10,9 +10,6 @@
     Height="450"
     mc:Ignorable="d">
 
-    <Window.Resources>
-        <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
-    </Window.Resources>
     <Grid>
         <StackPanel Margin="20">
 

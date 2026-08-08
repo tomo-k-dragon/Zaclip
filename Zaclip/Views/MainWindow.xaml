@@ -7,6 +7,7 @@
     xmlns:local="clr-namespace:Zaclip.Control"
     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:states="clr-namespace:Zaclip.States"
     Title="MainWindow"
     Width="350"
     Height="450"
@@ -85,24 +86,57 @@
                     Content="×" />
             </Grid>
 
-            <StackPanel
-                Grid.Row="1"
-                Margin="0,0,0,5"
-                Orientation="Horizontal">
+
+            <Grid Grid.Row="1" Margin="0,0,0,5">
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
 
                 <RadioButton
+                    Grid.Column="0"
                     Command="{Binding ChangeTabCommand}"
                     CommandParameter="Temporary"
                     Content="一時"
                     IsChecked="{Binding IsTemporaryTab, Mode=OneWay}"
                     Style="{StaticResource TabRadioButtonStyle}" />
                 <RadioButton
+                    Grid.Column="1"
                     Command="{Binding ChangeTabCommand}"
                     CommandParameter="Saved"
                     Content="保存済み"
                     IsChecked="{Binding IsSavedTab, Mode=OneWay}"
                     Style="{StaticResource TabRadioButtonStyle}" />
-            </StackPanel>
+
+                <StackPanel
+                    Grid.Column="3"
+                    VerticalAlignment="Center"
+                    Orientation="Horizontal"
+                    Visibility="{Binding IsTemporaryTab, Converter={StaticResource BoolToVisibilityConverter}}">
+
+                    <TextBlock
+                        Margin="0,0,8,0"
+                        VerticalAlignment="Center"
+                        Text="保存先：" />
+                    <ComboBox
+                        Width="60"
+                        SelectedValue="{Binding SelectedSaveDestination}"
+                        SelectedValuePath="Tag">
+                        <ComboBoxItem Content="端末" Tag="{x:Static states:SaveDestination.Local}" />
+                        <ComboBoxItem
+                            Content="クラウド"
+                            IsEnabled="{Binding IsLoggedIn}"
+                            Tag="{x:Static states:SaveDestination.Cloud}" />
+                        <ComboBoxItem
+                            Content="両方"
+                            IsEnabled="{Binding IsLoggedIn}"
+                            Tag="{x:Static states:SaveDestination.LocalAndCloud}" />
+                    </ComboBox>
+                </StackPanel>
+            </Grid>
 
             <TextBlock
                 Grid.Row="2"
