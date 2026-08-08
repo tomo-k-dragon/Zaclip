@@ -94,12 +94,13 @@
                     Command="{Binding ChangeTabCommand}"
                     CommandParameter="Temporary"
                     Content="一時"
-                    IsChecked="True"
+                    IsChecked="{Binding IsTemporaryTab, Mode=OneWay}"
                     Style="{StaticResource TabRadioButtonStyle}" />
                 <RadioButton
                     Command="{Binding ChangeTabCommand}"
                     CommandParameter="Saved"
                     Content="保存済み"
+                    IsChecked="{Binding IsSavedTab, Mode=OneWay}"
                     Style="{StaticResource TabRadioButtonStyle}" />
             </StackPanel>
 

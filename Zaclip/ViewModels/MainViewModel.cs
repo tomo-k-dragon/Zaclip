@@ -58,6 +58,8 @@ namespace Zaclip.ViewModel
             ChangeTabCommand = new RelayCommand<string>(execute: (target) =>
             {
                 CurrentListViewModel = target == "Temporary" ? _temporaryViewModel : _savedViewModel;
+                OnPropertyChanged(nameof(IsTemporaryTab));
+                OnPropertyChanged(nameof(IsSavedTab));
             });
             PersistCommand = new PersistClipboardItemCommand();
             DeleteCommand = new RelayCommand<ClipboardItem>(execute: Delete);
@@ -71,6 +73,11 @@ namespace Zaclip.ViewModel
 
         public Boolean IsLoggedIn => _session.IsLoggedIn;
 
+        public bool IsTemporaryTab =>
+            CurrentListViewModel is TemporaryClipboardListViewModel;
+
+        public bool IsSavedTab =>
+            CurrentListViewModel is SavedClipboardListViewModel;
 
         public async Task InitializeAsync()
         {
@@ -81,6 +88,12 @@ namespace Zaclip.ViewModel
         public void WindowHide()
         {
             this.RequestClose?.Invoke();
+        }
+
+        public void ResetListPosition()
+        {
+            _currentListViewModel = _temporaryViewModel;
+            
         }
 
 

@@ -72,7 +72,7 @@ namespace Zaclip
             };
             menuShow.Click += (s, e) =>
             {
-                this.Show();
+                ShowMainWindow();
             };
             var menuSetting = new ToolStripMenuItem()
             {
@@ -112,7 +112,7 @@ namespace Zaclip
 
             _notifyIcon.DoubleClick += (s, e) =>
             {
-                this.Show();
+                ShowMainWindow();
                 this.WindowState = WindowState.Normal;
             };
 
@@ -206,18 +206,23 @@ namespace Zaclip
                 }
             }else if(msg == WM_HOTKEY)
             {
-                this.Show();
-                this.Activate();
-                this.Topmost = true;
-                this.Topmost = false;
-                this.Focus();
-                if (ClipList.ItemContainerGenerator.ContainerFromIndex(0) is ListViewItem firstItem)
-                {
-                    firstItem.Focus();
-                }
+                ShowMainWindow();
                 handled = true;
             }
             return IntPtr.Zero;
+        }
+
+        private void ShowMainWindow()
+        {
+            _vm.ChangeTabCommand.Execute("Temporary");
+            this.Show();
+            this.Activate();
+            this.Topmost = true;
+            this.Topmost = false;
+            this.Focus();
+            if(ClipList.Items.Count > 0)
+                ClipList.ScrollIntoView(ClipList.Items[0]);
+
         }
         private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
