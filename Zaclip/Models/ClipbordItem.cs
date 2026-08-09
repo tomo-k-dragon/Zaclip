@@ -8,14 +8,14 @@ namespace Zaclip.Models
     public class ClipboardItem : INotifyPropertyChanged
     {
         public int Id { get; set; }
-        private string _text;
-        public required string Text 
+        private string _content;
+        public required string Content 
         { 
-            get => _text;
+            get => _content;
             set {
-                if (_text == value) return;
-                _text = value;
-                OnPropertyChanged(nameof(Text));
+                if (_content == value) return;
+                _content = value;
+                OnPropertyChanged(nameof(Content));
             }
         }
 
@@ -31,6 +31,8 @@ namespace Zaclip.Models
             }
         }
         public DateTime CreatedAt { get; set; }
+        public System.Guid Guid { get; set; }
+        public DateTime UpdatedAt { get; set; }
 
         public event PropertyChangedEventHandler? PropertyChanged;
 

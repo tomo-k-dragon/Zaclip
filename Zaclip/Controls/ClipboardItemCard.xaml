@@ -24,7 +24,7 @@
             <TextBlock
                 Height="40"
                 VerticalAlignment="Center"
-                Text="{Binding Text}"
+                Text="{Binding Content}"
                 TextTrimming="CharacterEllipsis"
                 TextWrapping="Wrap" />
 

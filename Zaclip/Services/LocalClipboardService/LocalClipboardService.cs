@@ -12,11 +12,11 @@ public class LocalClipboardService : ILocalClipboardService
     {
         _db = db;
     }
-    public Task<List<ClipboardItem>> GetAsync(ClipboardQuery query)
+        public Task<List<ClipboardItem>> GetAsync(ClipboardQuery query)
     {
         var items = _db.ClipItems.AsQueryable();
         if (!string.IsNullOrWhiteSpace(query.Keyword))
-            items = items.Where(x => x.Text.Contains(query.Keyword));
+            items = items.Where(x => x.Content.Contains(query.Keyword));
 
         if (query.Persisted.HasValue)
             items = items.Where(x => x.Persisted == query.Persisted.Value);
@@ -35,8 +35,10 @@ public class LocalClipboardService : ILocalClipboardService
     {
         var item = new ClipboardItem
         {
-            Text = itemText,
-            CreatedAt = DateTime.Now
+            Content = itemText,
+            CreatedAt = DateTime.Now,
+            Guid = System.Guid.NewGuid(),
+            UpdatedAt = DateTime.Now
         };
         _db.ClipItems.Add(item);
         await _db.SaveChangesAsync();

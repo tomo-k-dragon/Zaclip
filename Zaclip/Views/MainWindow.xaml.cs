@@ -265,7 +265,7 @@ namespace Zaclip
 
             _isInternalCopy = true;
             
-            Clipboard.SetText(item.Text);
+            Clipboard.SetText(item.Content);
             ClipList.SelectedIndex = 0;
             this.Hide();
             await Task.Delay(100);

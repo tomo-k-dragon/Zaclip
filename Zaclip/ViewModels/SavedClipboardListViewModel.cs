@@ -70,7 +70,7 @@ namespace Zaclip.ViewModels
             var result = await _serverClipboardService.GetClipboardItemsAsync();
             return result.Select(r => new ClipboardItem
             {
-                Text = r.Content,
+                Content = r.Content,
                 CreatedAt = r.UpdatedAt
             }).ToArray();
         }
