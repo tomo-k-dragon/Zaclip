@@ -9,6 +9,7 @@ using Zaclip.Dtos;
 using Zaclip.Models;
 using Zaclip.Services.ClipboardEventService;
 using Zaclip.Services.LocalClipboardService;
+using Zaclip.States;
 
 namespace Zaclip.ViewModels
 {
@@ -20,6 +21,20 @@ namespace Zaclip.ViewModels
         public ICommand DeleteCommand { get; }
         private ILocalClipboardService _localClipboardService;
         private IClipboardEventService _clipboardEventService;
+        private SaveDestination _selectedSaveDestination;
+        public SaveDestination SelectedSaveDestination
+        {
+            get => _selectedSaveDestination;
+            set
+            {
+                if (_selectedSaveDestination != value)
+                {
+                    _selectedSaveDestination = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
         public TemporaryClipboardListViewModel(ILocalClipboardService localClipboardService, IClipboardEventService clipboardEventService)
         {
             _localClipboardService = localClipboardService;
@@ -55,6 +70,7 @@ namespace Zaclip.ViewModels
             if (item == null) return;
 
             await _localClipboardService.PersistAsync(item.Id);
+
             _clipboardEventService.RaiseItemSaved(item.Id);
             Items.Remove(item);
         }

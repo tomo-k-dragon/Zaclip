@@ -123,7 +123,7 @@
                         Text="保存先：" />
                     <ComboBox
                         Width="60"
-                        SelectedValue="{Binding SelectedSaveDestination}"
+                        SelectedValue="{Binding CurrentListViewModel.SelectedSaveDestination}"
                         SelectedValuePath="Tag">
                         <ComboBoxItem Content="端末" Tag="{x:Static states:SaveDestination.Local}" />
                         <ComboBoxItem

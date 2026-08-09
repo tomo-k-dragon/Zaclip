@@ -8,5 +8,6 @@ namespace Zaclip.Services.ClipboardItemsService
     public interface IServerClipboardService
     {
         public Task<ServerClipboardItemResponse[]> GetClipboardItemsAsync();
+        public Task CreateClipboardItemAsync(int itemId);
     }
 }
