@@ -43,7 +43,7 @@ namespace Zaclip.Services.ServerClipboardService
                 CreatedAt = item.CreatedAt,
                 UpdatedAt = item.UpdatedAt
             };
-            var resp = await _http.PostAsJsonAsync("api/clipboard/", body);
+            var resp = await _http.PostAsJsonAsync("api/clipboarditem/", body);
             if (!resp.IsSuccessStatusCode)
                 throw new Exception("Failed to post clipboard item.");
         }

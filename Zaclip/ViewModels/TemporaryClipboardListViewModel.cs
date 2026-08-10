@@ -8,6 +8,7 @@ using Zaclip.Db;
 using Zaclip.Dtos;
 using Zaclip.Models;
 using Zaclip.Services.ClipboardEventService;
+using Zaclip.Services.ClipboardItemsService;
 using Zaclip.Services.LocalClipboardService;
 using Zaclip.States;
 
@@ -20,6 +21,7 @@ namespace Zaclip.ViewModels
         public ICommand SaveCommand { get; }
         public ICommand DeleteCommand { get; }
         private ILocalClipboardService _localClipboardService;
+        private IServerClipboardService _serverClipboardService;
         private IClipboardEventService _clipboardEventService;
         private SaveDestination _selectedSaveDestination;
         public SaveDestination SelectedSaveDestination
@@ -35,10 +37,11 @@ namespace Zaclip.ViewModels
             }
         }
 
-        public TemporaryClipboardListViewModel(ILocalClipboardService localClipboardService, IClipboardEventService clipboardEventService)
+        public TemporaryClipboardListViewModel(ILocalClipboardService localClipboardService, IClipboardEventService clipboardEventService, IServerClipboardService serverClipboardService)
         {
             _localClipboardService = localClipboardService;
             _clipboardEventService = clipboardEventService;
+            _serverClipboardService = serverClipboardService;
             Items.CollectionChanged += (s, e) =>
             {
                 OnPropertyChanged(nameof(HasItem));
@@ -69,7 +72,11 @@ namespace Zaclip.ViewModels
         {
             if (item == null) return;
 
-            await _localClipboardService.PersistAsync(item.Id);
+            if(SelectedSaveDestination == SaveDestination.Local || SelectedSaveDestination == SaveDestination.LocalAndCloud)
+                await _localClipboardService.PersistAsync(item.Id);
+
+            if(SelectedSaveDestination == SaveDestination.Cloud || SelectedSaveDestination == SaveDestination.LocalAndCloud)
+                await _serverClipboardService.CreateClipboardItemAsync(item.Id);
 
             _clipboardEventService.RaiseItemSaved(item.Id);
             Items.Remove(item);
