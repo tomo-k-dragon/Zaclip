@@ -14,5 +14,6 @@ namespace Zaclip.Services.LocalClipboardService
         public Task PersistAsync(int itemId);
         public Task DeleteAsync(int itemId);
         public Task DeleteTemporaryAsync();
+        public Task<List<Guid>> GetExistGuidsAsync(List<Guid> idList);
     }
 }

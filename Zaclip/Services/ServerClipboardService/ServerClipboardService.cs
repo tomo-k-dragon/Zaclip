@@ -21,9 +21,9 @@ namespace Zaclip.Services.ServerClipboardService
             _localClipboardService = local;
         }
 
-        public async Task<ServerClipboardItemResponse[]> GetClipboardItemsAsync()
+        public async Task<ServerClipboardItemResponse[]> GetClipboardItemsAsync(int skip, int take)
         {
-            var result = await _http.GetAsync("api/clipboarditem");
+            var result = await _http.GetAsync($"api/clipboarditem?skip={skip}&take={take}");
             if (!result.IsSuccessStatusCode)
                 throw new Exception("Failed to get server clipboard items.");
 
@@ -46,6 +46,22 @@ namespace Zaclip.Services.ServerClipboardService
             var resp = await _http.PostAsJsonAsync("api/clipboarditem/", body);
             if (!resp.IsSuccessStatusCode)
                 throw new Exception("Failed to post clipboard item.");
+        }
+
+        public async Task<List<Guid>> GetExistingGuidsAsync(List<Guid> guids)
+        {
+            var request = new ClipboardItemExistenceRequest
+            {
+                Guids = guids
+            };
+            var response = await _http.PostAsJsonAsync(
+                "api/clipboarditem/existence",
+                request);
+
+            response.EnsureSuccessStatusCode();
+            var result = await response.Content
+                .ReadFromJsonAsync<ClipboardItemExistenceResponse>();
+            return result?.ExistingGuids ?? [];
         }
     }
 }

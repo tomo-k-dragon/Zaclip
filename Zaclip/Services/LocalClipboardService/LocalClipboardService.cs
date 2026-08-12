@@ -78,4 +78,10 @@ public class LocalClipboardService : ILocalClipboardService
         _db.ClipItems.RemoveRange(items);
         await _db.SaveChangesAsync();
     }
+
+    public async Task<List<Guid>> GetExistGuidsAsync(List<Guid> guids) =>
+        await _db.ClipItems
+        .Where(x => guids.Contains(x.Guid))
+        .Select(x => x.Guid)
+        .ToListAsync();
 }
