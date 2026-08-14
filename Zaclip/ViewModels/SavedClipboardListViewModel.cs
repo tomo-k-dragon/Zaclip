@@ -13,15 +13,16 @@ using Zaclip.Services.ClipboardItemsService;
 using Zaclip.Services.LocalClipboardService;
 using Zaclip.Services.ServerClipboardService;
 using Zaclip.States;
-using System.Linq; // 追加
+using System.Linq;
+using Zaclip.Presentations; // 追加
 
 namespace Zaclip.ViewModels
 {
     public class SavedClipboardListViewModel : ViewModelBase, IClipboardListAction
     {
-        public ObservableCollection<ClipboardItem> Items { get; } = new ObservableCollection<ClipboardItem>();
-        private List<ClipboardItem> localItems = new List<ClipboardItem>();
-        private List<ClipboardItem> serverItems = new List<ClipboardItem>();
+        public ObservableCollection<ClipboardViewItem> Items { get; } = new ObservableCollection<ClipboardViewItem>();
+        private List<ClipboardViewItem> localItems = new List<ClipboardViewItem>();
+        private List<ClipboardViewItem> serverItems = new List<ClipboardViewItem>();
         public ICommand SaveCommand { get; } = new RelayCommand<ClipboardItem>(execute: item => { /* Implement save logic */ });
         public ICommand DeleteCommand { get; } = new RelayCommand<ClipboardItem>(execute: item => { /* Implement delete logic */ });
         private SessionContext _session;
@@ -39,6 +40,14 @@ namespace Zaclip.ViewModels
             _serverClipboardService = serverClipboardService;
             _localClipboardService = localClipboardService;
             _clipboardEventService = clipboardEventService;
+        }
+
+        private SaveDestination GetSaveState(Guid guid)
+        {
+            if (_saveDistDic.TryGetValue(guid, out var state))
+                return state;
+
+            return SaveDestination.None;
         }
 
         public async Task InitializeAsync()
@@ -94,7 +103,7 @@ namespace Zaclip.ViewModels
 
         }
 
-        private void MergeSavedItems(int addCount, List<ClipboardItem> locals, List<ClipboardItem> servers, bool localEmpty, bool serverEmpty)
+        private void MergeSavedItems(int addCount, List<ClipboardViewItem> locals, List<ClipboardViewItem> servers, bool localEmpty, bool serverEmpty)
         {
             int added = 0;
             var KeySet = new HashSet<Guid>(Items.Select(i => i.Guid));
@@ -108,7 +117,7 @@ namespace Zaclip.ViewModels
 
                 if (localItem == null && serverItem == null) return;
 
-                ClipboardItem? item;
+                ClipboardViewItem? item;
                 if (localItem != null && serverItem != null)
                 {
                     item = localItem.UpdatedAt < serverItem.UpdatedAt ? serverItem : localItem;
@@ -148,8 +157,24 @@ namespace Zaclip.ViewModels
         private async void OnLocalItemSaved(int itemId)
         {
             var item = await _localClipboardService.GetItemAsync(itemId);
+            if (item == null)
+                return;
+
+            var guids = await _serverClipboardService.GetExistingGuidsAsync(new List<Guid> { item.Guid });
+            SaveDestination saveState;
+            if(guids.Count > 0 && item.Persisted)
+            {
+                saveState = SaveDestination.LocalAndCloud;
+            }else if(guids.Count > 0)
+            {
+                saveState = SaveDestination.Cloud;
+            }else
+            {
+                saveState = SaveDestination.Local;
+            }
+            _saveDistDic.Add(item.Guid, saveState);
             if(item != null)
-                Items.Insert(0, item);
+                Items.Insert(0, new ClipboardViewItem(item, saveState));
         }
 
         public bool HasItem => Items.Count > 0;
@@ -158,7 +183,7 @@ namespace Zaclip.ViewModels
         /// ローカルDBからデータを取得して、サーバーにも保存されているかを検証し保存先辞書への登録までを行う。
         /// </summary>
         /// <returns></returns>
-        private async Task<List<ClipboardItem>> getLocalClipboardItemsAsync()
+        private async Task<List<ClipboardViewItem>> getLocalClipboardItemsAsync()
         {
             var items = await _localClipboardService.GetAsync(new Dtos.ClipboardQuery { Persisted = true, Skip = localItemsSkip, Take = pageSize });
             localItemsSkip += pageSize;
@@ -168,14 +193,14 @@ namespace Zaclip.ViewModels
             {
                 _saveDistDic.Add(id, serverIdList.Contains(id) ? SaveDestination.LocalAndCloud : SaveDestination.Local);
             }
-            return items.ToList();
+            return items.Select(x => new ClipboardViewItem(x, _saveDistDic.ContainsKey(x.Guid) ? _saveDistDic[x.Guid] : SaveDestination.None)).ToList();
         }
 
         /// <summary>
         /// サーバーからClipboardItemを取得して、ローカルにも保存されているかを検証し保存先辞書への登録までを行う。
         /// </summary>
         /// <returns></returns>
-        private async Task<List<ClipboardItem>> getServerClipboardItemsAsync()
+        private async Task<List<ClipboardViewItem>> getServerClipboardItemsAsync()
         {
             var result = await _serverClipboardService.GetClipboardItemsAsync(serverItemsSkip, pageSize);
             serverItemsSkip += pageSize;
@@ -191,7 +216,7 @@ namespace Zaclip.ViewModels
             {
                 _saveDistDic.Add(id, localIdList.Contains(id) ? SaveDestination.LocalAndCloud : SaveDestination.Cloud);
             }
-            return serverItems;
+            return serverItems.Select(x => new ClipboardViewItem(x, _saveDistDic.ContainsKey(x.Guid) ? _saveDistDic[x.Guid] : SaveDestination.None)).ToList();
         }
     }
 }

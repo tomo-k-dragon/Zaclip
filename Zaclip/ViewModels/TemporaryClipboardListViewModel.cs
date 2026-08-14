@@ -7,6 +7,7 @@ using Zaclip.Command;
 using Zaclip.Db;
 using Zaclip.Dtos;
 using Zaclip.Models;
+using Zaclip.Presentations;
 using Zaclip.Services.ClipboardEventService;
 using Zaclip.Services.ClipboardItemsService;
 using Zaclip.Services.LocalClipboardService;
@@ -17,7 +18,7 @@ namespace Zaclip.ViewModels
     public class TemporaryClipboardListViewModel : ViewModelBase, IClipboardListAction
     {
         
-        public ObservableCollection<ClipboardItem> Items { get; } = new ObservableCollection<ClipboardItem>();
+        public ObservableCollection<ClipboardViewItem> Items { get; } = new ObservableCollection<ClipboardViewItem>();
         public ICommand SaveCommand { get; }
         public ICommand DeleteCommand { get; }
         private ILocalClipboardService _localClipboardService;
@@ -46,8 +47,8 @@ namespace Zaclip.ViewModels
             {
                 OnPropertyChanged(nameof(HasItem));
             };
-            SaveCommand = new RelayCommand<ClipboardItem>(async (item) => await PersistAsync(item));
-            DeleteCommand = new RelayCommand<ClipboardItem>(async (item) => await DeleteAsync(item));
+            SaveCommand = new RelayCommand<ClipboardViewItem>(async (item) => await PersistAsync(item));
+            DeleteCommand = new RelayCommand<ClipboardViewItem>(async (item) => await DeleteAsync(item));
         }
         
         public async Task InitializeAsync()
@@ -56,19 +57,19 @@ namespace Zaclip.ViewModels
             var itemList = await _localClipboardService.GetAsync(query);
             foreach (var item in itemList)
             {
-                Items.Add(item);
+                Items.Add(new ClipboardViewItem(item, SaveDestination.None));
             }
         }
 
         public async Task AddItem(string text)
         {
             var newItem = await _localClipboardService.SaveTemporaryAsync(text);
-            Items.Insert(0, newItem);
+            Items.Insert(0, new ClipboardViewItem(newItem, SaveDestination.None));
         } 
 
         public bool HasItem => Items.Count > 0;
 
-        private async Task PersistAsync(ClipboardItem? item)
+        private async Task PersistAsync(ClipboardViewItem? item)
         {
             if (item == null) return;
 
@@ -82,7 +83,7 @@ namespace Zaclip.ViewModels
             Items.Remove(item);
         }
 
-        private async Task DeleteAsync(ClipboardItem? item)
+        private async Task DeleteAsync(ClipboardViewItem? item)
         {
             if (item == null) return;
             await _localClipboardService.DeleteAsync(item.Id);

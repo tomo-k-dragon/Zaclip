@@ -9,6 +9,7 @@ namespace Zaclip.States
     /// </summary>
     public enum SaveDestination
     {
+        None,
         Local,
         Cloud,
         LocalAndCloud,
