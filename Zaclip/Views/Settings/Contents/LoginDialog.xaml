@@ -5,45 +5,94 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Zaclip.View.Settings.Contents"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
     Title="LoginDialog"
-    Width="800"
-    Height="450"
+    Width="500"
+    Height="350"
     mc:Ignorable="d">
 
     <Grid>
-        <StackPanel Margin="20">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="8*" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="2*" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        
+        <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,20,0,0"  HorizontalAlignment="Center">
+            <TextBlock HorizontalAlignment="Center" FontSize="24" Text="Log In" />
+            <TextBlock Margin="0,10,0,0"  HorizontalAlignment="Center" Text="アカウント登録はこちら" />
+        </StackPanel>
+        <StackPanel Grid.Row="1" Grid.Column="1" Margin="0, 30, 0, 0" VerticalAlignment="Center">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="40" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
 
-            <TextBlock Text="メールアドレス" />
-            <TextBox
-                x:Name="txtEmail"
-                Height="35"
-                Margin="0,5,0,0"
-                Padding="10"
-                Text="{Binding Email, UpdateSourceTrigger=PropertyChanged}" />
 
-            <TextBlock Margin="0,15,0,0" Text="パスワード" />
+                <materialDesign:PackIcon Grid.Column="0" Height="30" Kind="Email" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                <Border
+                    Grid.Column="1"
+                    BorderBrush="#D0D0D0"
+                    BorderThickness="1"
+                    CornerRadius="4"
+                    Background="White">
+                    
+                    <TextBox
+                        Grid.Column="1"
+                        x:Name="txtEmail"        
+                        BorderThickness="0"
+                        Background="Transparent"
+                        Height="35"
+                        Padding="10"
+                        Text="{Binding Email, UpdateSourceTrigger=PropertyChanged}" />
+                </Border>
+            </Grid>
 
-            <PasswordBox
+            <Grid Margin="0, 10, 0, 0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="40" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <materialDesign:PackIcon Grid.Column="0" Height="30" Kind="Lock" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                <Border
+                    Grid.Column="1"
+                    BorderBrush="#D0D0D0"
+                    BorderThickness="1"
+                    CornerRadius="4"
+                    Background="White">
+                    <PasswordBox
+                Grid.Column="1"
                 x:Name="txtPassword"
+                                BorderThickness="0"
+        Background="Transparent"
                 Height="35"
-                Margin="0,5,0,0"
                 Padding="10" />
+                </Border>
+            </Grid>
 
-            <TextBlock Foreground="Red" Text="{Binding ErrorMessage}" />
+            <TextBlock Margin="0,20,0,0" HorizontalAlignment="Center" Foreground="Red" Text="{Binding ErrorMessage}" />
 
         </StackPanel>
 
         <Button
             Grid.Row="2"
+            Grid.Column="1"
             Width="100"
             Height="35"
-            Margin="0,0,20,20"
-            HorizontalAlignment="Right"
-            VerticalAlignment="Bottom"
+            Margin="0,0,0,30"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
             Command="{Binding LoginCommand}"
             Content="ログイン" />
 
-        <Grid Background="#80000000" Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}">
+        <Grid Grid.RowSpan="3" Grid.ColumnSpan="3" Background="#80000000" Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}">
 
             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
 
