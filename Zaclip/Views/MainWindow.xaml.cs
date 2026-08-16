@@ -23,6 +23,7 @@ using ListViewItem = System.Windows.Controls.ListViewItem;
 using Zaclip.View;
 using Microsoft.Extensions.DependencyInjection;
 using Zaclip.View.Settings.Contents;
+using Zaclip.States;
 
 namespace Zaclip
 {
@@ -82,17 +83,7 @@ namespace Zaclip
                 Image = null,
             };
             menuSetting.Click += (s, e) =>
-            {
-                if (_settingWindow != null)
-                {
-                    _settingWindow.Activate();
-                    return;
-                }
-                _settingWindow = new SettingWindow();
-                _settingWindow.Closed += (s, e) => _settingWindow = null;
-                _settingWindow.Show();
-
-            };
+                ShowSettingWindow(SettingPage.General);
             var menuExit = new ToolStripMenuItem()
             {
                 Text = "終了",
@@ -133,9 +124,14 @@ namespace Zaclip
             Loaded += MainWindow_Loaded;
 
             _vm.AccountIconViewModel.LoginRequested += () =>
+                ShowLoginDialog();
+            _vm.AccountIconViewModel.AccountSettingRequested += () =>
             {
-                ShowLogindDialog();
+                _isShowDialog = true;
+                ShowSettingWindow(SettingPage.Account);
+                _isShowDialog = false;
             };
+                
         }
 
         private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -293,7 +289,19 @@ namespace Zaclip
             SendSelectedItem();
         }
 
-        private void ShowLogindDialog()
+        private void ShowSettingWindow(SettingPage settingPage)
+        {
+            if (_settingWindow != null)
+            {
+                _settingWindow.Activate();
+                return;
+            }
+            _settingWindow = new SettingWindow(settingPage);
+            _settingWindow.Closed += (s, e) => _settingWindow = null;
+            _settingWindow.Show();
+        }
+
+        private void ShowLoginDialog()
         {
             if (_isShowDialog) return;
 

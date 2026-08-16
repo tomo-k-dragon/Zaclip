@@ -9,6 +9,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using Zaclip.States;
 using Zaclip.View.Settings.Contents;
 
 namespace Zaclip.View
@@ -18,11 +19,11 @@ namespace Zaclip.View
     /// </summary>
     public partial class SettingWindow : Window
     {
-        public SettingWindow()
+        public SettingWindow(SettingPage settingPage)
         {
             InitializeComponent();
 
-            MenuListBox.SelectedIndex = 0;
+            MenuListBox.SelectedIndex = (int)settingPage;
         }
 
         private void MenuListBox_SelectionChanged(
