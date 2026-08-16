@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using Zaclip.Command;
+using Zaclip.Services.AuthService;
 using Zaclip.States;
 
 namespace Zaclip.ViewModels.Controls
@@ -11,14 +12,19 @@ namespace Zaclip.ViewModels.Controls
     public class AccountIconViewModel : INotifyPropertyChanged
     {
         private readonly SessionContext _session;
+        private readonly TokenStore _tokenStore;
+        private readonly IAuthService _authService;
 
-        public AccountIconViewModel(SessionContext session)
+        public AccountIconViewModel(SessionContext session, IAuthService authService, TokenStore tokenStore)
         {
             _session = session;
+            _authService = authService;
+            _tokenStore = tokenStore;
 
             LoginCommand = new RelayCommand(OnLogin);
             LogoutCommand = new RelayCommand(OnLogout);
             OpenAccountSettingCommand = new RelayCommand(OnOpenAccountSetting);
+            _session.SessionChanged += () => Refresh();
         }
 
         #region INotifyPropertyChanged
@@ -66,8 +72,6 @@ namespace Zaclip.ViewModels.Controls
 
         public event Action? LoginRequested;
 
-        public event Action? LogoutRequested;
-
         public event Action? AccountSettingRequested;
 
         private void OnLogin()
@@ -75,9 +79,12 @@ namespace Zaclip.ViewModels.Controls
             LoginRequested?.Invoke();
         }
 
-        private void OnLogout()
+        private async void OnLogout()
         {
-            LogoutRequested?.Invoke();
+            if(!_session.IsLoggedIn || _tokenStore.RefreshToken == null)
+                return;
+
+            await _authService.LogoutAsync(_tokenStore.RefreshToken);
         }
 
         private void OnOpenAccountSetting()

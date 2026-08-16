@@ -79,7 +79,30 @@ namespace Zaclip.Services.AuthService
         public async Task AutoLoginAsync()
         {
             var credential = await _credentialService.LoadAsync();
+            if (credential == null) return;
+
             var loginResult = await RefreshAsync(credential.Email, credential.RefreshToken);
+        }
+
+        public async Task LogoutAsync(string refreshToken)
+        {
+            if (!_session.IsLoggedIn)
+                return;
+
+            try
+            {
+                var result = await _httpClient.PostAsJsonAsync("api/auth/logout", new { refreshToken = refreshToken });
+                if (!result.IsSuccessStatusCode)
+                    throw new Exception("ログアウトに失敗しました。");
+
+                _tokenStore.Clear();
+                _session.Logout();
+                await _credentialService.DeleteAsync();
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
         }
 
         // <summary>ログイン情報の保存を行う</summary>

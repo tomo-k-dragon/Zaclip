@@ -11,6 +11,7 @@ using Zaclip.Models;
 using Zaclip.Services.ClipboardItemsService;
 using Zaclip.Services.ServerClipboardService;
 using Zaclip.States;
+using Zaclip.View.Settings.Contents;
 using Zaclip.ViewModels;
 using Zaclip.ViewModels.Controls;
 
@@ -68,7 +69,14 @@ namespace Zaclip.ViewModel
             {
                 OnPropertyChanged(nameof(HasItem));
             };
-            _temporaryViewModel.SelectedSaveDestination = IsLoggedIn ? SaveDestination.LocalAndCloud : SaveDestination.Local;
+            SetSaveDestination();
+
+            //ログイン状態変更時のイベント
+            _session.SessionChanged += () =>
+            {
+                OnPropertyChanged(nameof(IsLoggedIn));
+                SetSaveDestination();
+            };
         }
 
         public Boolean IsLoggedIn => _session.IsLoggedIn;
@@ -78,6 +86,9 @@ namespace Zaclip.ViewModel
 
         public bool IsSavedTab =>
             CurrentListViewModel is SavedClipboardListViewModel;
+
+        public void SetSaveDestination() => 
+            _temporaryViewModel.SelectedSaveDestination = IsLoggedIn ? SaveDestination.LocalAndCloud : SaveDestination.Local;
 
         public async Task InitializeAsync()
         {
@@ -124,5 +135,6 @@ namespace Zaclip.ViewModel
             // --- UI更新 ---
             Items.Remove(item);
         }
+
     }
 }

@@ -8,7 +8,7 @@ namespace Zaclip.Services.Credential
     public interface ICredentialService
     {
         public Task SaveAsync(string email, string refreshToken);
-        public Task<CredentialData> LoadAsync();
+        public Task<CredentialData?> LoadAsync();
         public Task DeleteAsync();
     }
 }

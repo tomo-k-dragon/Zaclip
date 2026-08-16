@@ -25,12 +25,13 @@ namespace Zaclip.Services.Credential
             return Task.CompletedTask;
         }
 
-        public Task<CredentialData> LoadAsync()
+        public Task<CredentialData?> LoadAsync()
         {
             var credential = new CredentialManagement.Credential { Target = Target };
             if (!credential.Load())
-                throw new Exception("資格情報の読み込みに失敗しました。");
-            return Task.FromResult(new CredentialData
+                return Task.FromResult<CredentialData?>(null);
+
+            return Task.FromResult<CredentialData?>(new CredentialData
             {
                 Email = credential.Username,
                 RefreshToken = credential.Password

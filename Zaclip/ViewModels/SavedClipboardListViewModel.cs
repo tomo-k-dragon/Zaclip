@@ -40,6 +40,7 @@ namespace Zaclip.ViewModels
             _serverClipboardService = serverClipboardService;
             _localClipboardService = localClipboardService;
             _clipboardEventService = clipboardEventService;
+            _session.SessionChanged += () => RefreshData();
         }
 
         private SaveDestination GetSaveState(Guid guid)
@@ -53,6 +54,18 @@ namespace Zaclip.ViewModels
         public async Task InitializeAsync()
         {
             _clipboardEventService.ItemSaved += OnLocalItemSaved;
+            await AddSavedItems(pageSize);
+        }
+
+        public async void RefreshData()
+        {
+            Items.Clear();
+            localItems.Clear();
+            serverItems.Clear();
+            localItemsSkip = 0;
+            serverItemsSkip = 0;
+            showAllData = false;
+            _saveDistDic.Clear();
             await AddSavedItems(pageSize);
         }
 

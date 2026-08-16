@@ -10,5 +10,6 @@ namespace Zaclip.Services.AuthService
         Task<LoginResult> LoginAsync(string email, string password);
         Task<LoginResult> RefreshAsync(string email, string refreshToken);
         Task AutoLoginAsync();
+        Task LogoutAsync(string refreshToken);
     }
 }

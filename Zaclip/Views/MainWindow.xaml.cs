@@ -21,6 +21,8 @@ using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 using MessageBox = System.Windows.MessageBox;
 using ListViewItem = System.Windows.Controls.ListViewItem;
 using Zaclip.View;
+using Microsoft.Extensions.DependencyInjection;
+using Zaclip.View.Settings.Contents;
 
 namespace Zaclip
 {
@@ -129,6 +131,11 @@ namespace Zaclip
                 return result == MessageBoxResult.Yes;
             };
             Loaded += MainWindow_Loaded;
+
+            _vm.AccountIconViewModel.LoginRequested += () =>
+            {
+                ShowLogindDialog();
+            };
         }
 
         private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -284,6 +291,17 @@ namespace Zaclip
         private void ClipList_MouseClick(object sender, MouseButtonEventArgs e)
         {
             SendSelectedItem();
+        }
+
+        private void ShowLogindDialog()
+        {
+            if (_isShowDialog) return;
+
+            var loginDialog = App.ServiceProvider.GetRequiredService<LoginDialog>();
+            loginDialog.Owner = this;
+            _isShowDialog = true;
+            loginDialog.ShowDialog();
+            _isShowDialog = false;
         }
     }
     }
